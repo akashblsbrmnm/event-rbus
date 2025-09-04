@@ -1,0 +1,66 @@
+gcc rbusPublisher.c -o publisher -I${RBUS_INSTALL_DIR}/usr/include -I${RBUS_INSTALL_DIR}/usr/include/rtmessage -L${RBUS_INSTALL_DIR}/usr/lib -lrbus -lrbuscore ; gcc rbusSubscriber.c -o subscriber   -I${RBUS_INSTALL_DIR}/usr/include   -I${RBUS_INSTALL_DIR}/usr/include/rtmessage   -L${RBUS_INSTALL_DIR}/usr/lib   -lrbus -lrbuscore
+
+LOGS
+=====
+akash@spaceship:~/akash/event-rbus$ ./publisher 
+[Provider] Starting...
+[Provider] Registered 5 parameters. Waiting for set calls...
+
+akash@spaceship:~/akash/event-rbus$ ./subscriber 
+[Subscriber] Starting...
+[Subscriber] Subscribing to: Device.Test.Param1
+[Subscriber] Subscribing to: Device.Test.Param2
+[Subscriber] Subscribing to: Device.Test.Param3
+[Subscriber] Subscribing to: Device.Test.Param4
+[Subscriber] Subscribing to: Device.Test.Param5
+[Subscriber] Subscribed to all. Waiting for events...
+[Subscriber] Subscribed successfully to Device.Test.Param1
+[Subscriber] Subscribed successfully to Device.Test.Param2
+[Subscriber] Subscribed successfully to Device.Test.Param3
+[Subscriber] Subscribed successfully to Device.Test.Param4
+[Subscriber] Subscribed successfully to Device.Test.Param5
+
+
+akash@spaceship:~/akash/event-rbus$ rbuscli set Device.Test.Param3 string "HelloWorld"
+setvalues succeeded..
+[Provider] Device.Test.Param3 updated to HelloWorld
+[Subscriber] Event received for Device.Test.Param3
+[Subscriber] New value = HelloWorld, Old value = Value3
+
+
+akash@spaceship:~/akash/event-rbus$ rbuscli set Device.Test.Param2 string "HelloWorld2"
+setvalues succeeded..[Provider] Device.Test.Param2 updated to HelloWorld2
+[Provider] Device.Test.Param2 updated to HelloWorld2
+[Subscriber] Event received for Device.Test.Param2
+[Subscriber] New value = HelloWorld2, Old value = Value2
+
+akash@spaceship:~/akash/event-rbus$ rbuscli set Device.Test.Param6 string "HelloWorld"
+12:22:06.183643  RBUS       ERROR rbus.c:4028 -- Thread-7279: _setInternal for Device.Test.Param6 failed with error: Entry not found error
+setvalues failed with return value: 5
+
+
+ADDITIONAL NOTES
+==================
+
+rbusEvent_Publish() is used if TYPE_EVENTR is used :)
+
+1. Manual Publishing (Optional):
+You wrote:
+
+// No manual rbusEvent_Publish() here — RBus will send the event automatically
+
+✔️ That’s correct. RBUS automatically fires events on rbus_set() if the value changes.
+
+But in some advanced use cases (like event without value change, or custom events), you can still use:
+
+rbusEvent_t event;
+event.name = "Device.Test.Param1";
+event.data = rbusObject_Init(NULL);
+rbusObject_SetValue(event.data, "value", value);
+rbusEvent_Publish(handle, &event);
+rbusObject_Release(event.data);
+
+
+Only do this if you're not using setHandler() to update the value.
+
+
