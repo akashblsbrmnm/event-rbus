@@ -1,0 +1,57 @@
+gcc rbusPublisher.c -o publisher -I${RBUS_INSTALL_DIR}/usr/include -I${RBUS_INSTALL_DIR}/usr/include/rtmessage -L${RBUS_INSTALL_DIR}/usr/lib -lrbus -lrbuscore ; gcc rbusSubscriber.c -o subscriber   -I${RBUS_INSTALL_DIR}/usr/include   -I${RBUS_INSTALL_DIR}/usr/include/rtmessage   -L${RBUS_INSTALL_DIR}/usr/lib   -lrbus -lrbuscore
+
+
+
+akash@spaceship:~/akash/event-rbus$ ./publisher 
+[Provider] Starting...
+[Provider] Registered 5 parameters. Waiting for set calls...
+[Provider] Device.Test.Param1 updated to XYZ
+^C
+
+
+[Subscriber] Starting...
+[Subscriber] Subscribing to: Device.Test.Param1
+[Subscriber] Subscribing to: Device.Test.Param2
+[Subscriber] Subscribing to: Device.Test.Param3
+[Subscriber] Subscribing to: Device.Test.Param4
+[Subscriber] Subscribing to: Device.Test.Param5
+[Subscriber] Subscribed to all. Waiting for events...
+[Subscriber] Subscribed successfully to Device.Test.Param1
+[Subscriber] Subscribed successfully to Device.Test.Param2
+[Subscriber] Subscribed successfully to Device.Test.Param3
+[Subscriber] Subscribed successfully to Device.Test.Param4
+[Subscriber] Subscribed successfully to Device.Test.Param5
+
+
+
+[Subscriber] Event received for Device.Test.Param1
+[Subscriber] New value = XYZ, Old value = Value1
+^C
+
+
+akash@spaceship:~/akash/event-rbus$ rbuscli set Device.Test.Param1 string "XYZ"
+setvalues succeeded..
+
+
+rbusEvent_Publish() is used if TYPE_EVENTR is used :)
+
+
+1. Manual Publishing (Optional):
+
+You wrote:
+
+// No manual rbusEvent_Publish() here — RBus will send the event automatically
+
+✔️ That’s correct. RBUS automatically fires events on rbus_set() if the value changes.
+
+But in some advanced use cases (like event without value change, or custom events), you can still use:
+
+rbusEvent_t event;
+event.name = "Device.Test.Param1";
+event.data = rbusObject_Init(NULL);
+rbusObject_SetValue(event.data, "value", value);
+rbusEvent_Publish(handle, &event);
+rbusObject_Release(event.data);
+
+
+Only do this if you're not using setHandler() to update the value.
